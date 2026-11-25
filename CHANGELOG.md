@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+* The safe area of a window moved onto the scene: winit gives its window the root view controller
+  before the plugin puts it on the scene, and such a window kept the safe area of the screen held
+  upright (on a phone on its side: top 62, bottom 34, no sides). The root view controller is now
+  set again once the window is on its scene, before it is shown.
+
 ## [0.7.0] - 2026-10-20
 
 ### Added

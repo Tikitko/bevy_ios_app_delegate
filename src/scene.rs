@@ -123,10 +123,24 @@ fn connect(scene: &UIWindowScene) {
 
     for window in windows {
         unsafe { window.setWindowScene(Some(scene)) };
+        reset_root(&window);
         window.makeKeyAndVisible();
     }
 
     bevy_log::debug!("scene connected");
+}
+
+/// Sets a window's root view controller again once the window is on its scene, before it is
+/// shown. A window made without a scene (as winit makes it) that got its root view controller
+/// before it was put on a scene keeps the safe area of the screen held upright: on a phone on
+/// its side top 62, bottom 34 and the sides none instead of left 62, right 62, bottom 20
+/// (iPhone 17 / 18 Pro, iOS 26.5 and 27.2). Setting it again after the window is shown no
+/// longer helps.
+fn reset_root(window: &UIWindow) {
+    if let Some(controller) = window.rootViewController() {
+        window.setRootViewController(None);
+        window.setRootViewController(Some(&controller));
+    }
 }
 
 fn track(window: &UIWindow) {
@@ -166,7 +180,10 @@ pub(crate) fn swizzle() {
             track(window);
 
             match SCENE.with_borrow(Clone::clone) {
-                Some(scene) => unsafe { window.setWindowScene(Some(&scene)) },
+                Some(scene) => {
+                    unsafe { window.setWindowScene(Some(&scene)) };
+                    reset_root(window);
+                }
                 // Keep it hidden: showing a sceneless window is a UIKit warning, and `connect`
                 // makes it key and visible once there is a scene.
                 None => return,
